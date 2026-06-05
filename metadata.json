@@ -1,0 +1,6 @@
+{
+  "name": "FAQ Chatbot",
+  "description": "An intelligent, production-ready FAQ chatbot with semantic matching, real-time analytics, and FAQ administration dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
