@@ -1,16 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, BarChart3, Settings, ShieldCheck, HelpCircle, Shield, AlertTriangle, Database, Server, Activity, Heart, Terminal } from 'lucide-react';
+import { MessageSquare, BarChart3, HelpCircle, Database, Activity, Server, Heart } from 'lucide-react';
 
 import BotChat from './components/BotChat';
 import AnalyticsDashboard from './components/AnalyticsDashboard';
-import AdminPanel from './components/AdminPanel';
-import TestSuitePanel from './components/TestSuitePanel';
 
-type TabType = 'chat' | 'analytics' | 'admin' | 'test';
+type TabType = 'chat' | 'analytics';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<TabType>('chat');
-  const [authToken, setAuthToken] = useState<string | null>(null);
   const [dbStatus, setDbStatus] = useState<{
     success: boolean;
     status: string;
@@ -20,14 +17,6 @@ export default function App() {
     latencyMs: number;
     timestamp: string;
   } | null>(null);
-
-  // Load cached token if available
-  useEffect(() => {
-    const cached = localStorage.getItem('faq_auth_token');
-    if (cached) {
-      setAuthToken(cached);
-    }
-  }, []);
 
   // Fetch true database connection status
   useEffect(() => {
@@ -48,31 +37,21 @@ export default function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleLogin = (token: string) => {
-    setAuthToken(token);
-    localStorage.setItem('faq_auth_token', token);
-  };
-
-  const handleLogout = () => {
-    setAuthToken(null);
-    localStorage.removeItem('faq_auth_token');
-  };
-
   return (
     <div id="faq_chatbot_app_root" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased">
       
       {/* Sleek, High-Contrast Header Navigation */}
-      <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+      <header className="bg-slate-905 border-b border-slate-800/80 sticky top-0 z-40 backdrop-blur-md bg-slate-900/90">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           
           {/* Branded Identity */}
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-600 flex items-center justify-center text-white border border-indigo-500/20 shadow-lg">
-              <Shield className="w-4 h-4" />
+              <MessageSquare className="w-4 h-4" />
             </div>
             <div>
-              <h1 className="text-sm font-bold tracking-tight font-display text-slate-100">GUARDIAN AI</h1>
-              <span className="text-[10px] font-mono text-slate-450 uppercase tracking-widest block">Intelligent FAQ Suite</span>
+              <h1 className="text-sm font-bold tracking-tight font-display text-slate-100">CLARA ASSISTANT</h1>
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest block">Instant Care Solver</span>
             </div>
           </div>
 
@@ -98,31 +77,15 @@ export default function App() {
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              <BarChart3 className="w-3.5 h-3.5" /> Analytics
-            </button>
-            <button
-              id="tab_admin"
-              onClick={() => setActiveTab('admin')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
-                activeTab === 'admin'
-                  ? 'bg-slate-900 text-indigo-400 font-bold border border-slate-800/80 shadow'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <Settings className="w-3.5 h-3.5" /> Admin FAQ Portal
-            </button>
-            <button
-              id="tab_test"
-              onClick={() => setActiveTab('test')}
-              className={`flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 cursor-pointer ${
-                activeTab === 'test'
-                  ? 'bg-slate-900 text-indigo-400 font-bold border border-slate-800/80 shadow'
-                  : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" /> Unit Tests
+              <BarChart3 className="w-3.5 h-3.5" /> Stats Dashboard
             </button>
           </nav>
+
+          {/* Clean indicator of live state */}
+          <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-emerald-950/40 border border-emerald-900/40 rounded-full">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-[11px] font-medium text-emerald-400 font-mono">Live Solver Online</span>
+          </div>
 
         </div>
       </header>
@@ -135,40 +98,20 @@ export default function App() {
           {activeTab === 'chat' && (
             <div className="animate-fade-in">
               <h2 className="text-xl font-bold font-display tracking-tight text-slate-100 flex items-center gap-2">
-                <HelpCircle className="w-5 h-5 text-indigo-500" /> Chat Simulator Playground
+                <HelpCircle className="w-5 h-5 text-indigo-500" /> Interactive AI FAQ Chat
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                Converse with our preprocessed NLP matching engine. Matches confidence levels in real time or triggers secure AI fallbacks dynamically.
+                Ask Clara any questions below! Our intelligent engine matches answers instantly and performs real-time step-by-step resolution.
               </p>
             </div>
           )}
           {activeTab === 'analytics' && (
             <div className="animate-fade-in">
               <h2 className="text-xl font-bold font-display tracking-tight text-slate-100 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-indigo-505" /> Interaction Analytics & Audit Logs
+                <BarChart3 className="w-5 h-5 text-indigo-500" /> Interaction Analytics & Inquiries
               </h2>
               <p className="text-xs text-slate-400 mt-1">
-                Quantify search match accuracy levels, transaction timestamps, queries frequency trends, and failed matching distributions.
-              </p>
-            </div>
-          )}
-          {activeTab === 'admin' && (
-            <div className="animate-fade-in">
-              <h2 className="text-xl font-bold font-display tracking-tight text-slate-100 flex items-center gap-2">
-                <Settings className="w-5 h-5 text-indigo-505" /> FAQ Database Administration
-              </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Perform atomic entry creates, update descriptions, delete indices, or mass import database indexes using structured CSV templates.
-              </p>
-            </div>
-          )}
-          {activeTab === 'test' && (
-            <div className="animate-fade-in">
-              <h2 className="text-xl font-bold font-display tracking-tight text-slate-100 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-indigo-505" /> Secure Environment Verification Test Bed
-              </h2>
-              <p className="text-xs text-slate-400 mt-1">
-                Verify sanitizers, suffix reduction algorithms, encryption schemes, and core SQLite/JSON atomic transitions on live containers.
+                Visual stats, metrics trends, and transaction history tracking our real-time resolved questions.
               </p>
             </div>
           )}
@@ -177,15 +120,7 @@ export default function App() {
         {/* Tab view contents */}
         <div className="transition-all duration-300">
           {activeTab === 'chat' && <BotChat />}
-          {activeTab === 'analytics' && <AnalyticsDashboard authToken={authToken} />}
-          {activeTab === 'admin' && (
-            <AdminPanel
-              authToken={authToken}
-              onLogin={handleLogin}
-              onLogout={handleLogout}
-            />
-          )}
-          {activeTab === 'test' && <TestSuitePanel />}
+          {activeTab === 'analytics' && <AnalyticsDashboard />}
         </div>
 
       </main>
@@ -202,7 +137,7 @@ export default function App() {
             {/* Database Real-time Health Monitor */}
             <div className="space-y-3">
               <h4 className="text-xs font-mono text-slate-400 tracking-wider uppercase flex items-center gap-2">
-                <Database className="w-3.5 h-3.5 text-indigo-400" /> Database Live Stream
+                <Database className="w-3.5 h-3.5 text-indigo-400" /> Live Database Status
               </h4>
               <div className="bg-slate-950/65 border border-slate-800 p-4 rounded-xl space-y-2.5">
                 <div className="flex items-center justify-between">
@@ -213,11 +148,11 @@ export default function App() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400 font-sans">Storage Provider:</span>
-                  <span className="text-xs font-mono text-slate-300">{dbStatus?.provider || 'Durable JSON Document Store'}</span>
+                  <span className="text-[11px] text-slate-400 font-sans">Storage:</span>
+                  <span className="text-xs font-mono text-slate-300">{dbStatus?.provider || 'Durable JSON Store'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-slate-400 font-sans">File Reference:</span>
+                  <span className="text-[11px] text-slate-400 font-sans">Database File:</span>
                   <span className="text-[11px] font-mono text-indigo-400 bg-indigo-950/30 px-1.5 py-0.5 rounded border border-indigo-900/30">
                     {dbStatus?.path || 'database.json'}
                   </span>
@@ -236,11 +171,11 @@ export default function App() {
                   <span className="font-mono font-semibold text-slate-200">{dbStatus?.stats.faqs ?? '7'} records</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-400 font-sans">User Inquiries Logged:</span>
-                  <span className="font-mono font-semibold text-slate-200">{dbStatus?.stats.queries ?? '6'} logs</span>
+                  <span className="text-slate-400 font-sans">User questions resolved:</span>
+                  <span className="font-mono font-semibold text-slate-200">{dbStatus?.stats.queries ?? '6'} questions</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-400 font-sans">Database Disk Size:</span>
+                  <span className="text-slate-400 font-sans">Doc Index Size:</span>
                   <span className="font-mono font-semibold text-slate-200">
                     {dbStatus?.stats.sizeInBytes ? `${(dbStatus.stats.sizeInBytes / 1024).toFixed(2)} KB` : '15.35 KB'}
                   </span>
@@ -261,12 +196,12 @@ export default function App() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-400 font-sans">Data Cryptography:</span>
-                  <span className="font-mono text-emerald-400">AES-256 Symmetric</span>
+                  <span className="text-slate-400 font-sans">Resolution Agent:</span>
+                  <span className="font-mono text-emerald-400">Gemini Flash Active</span>
                 </div>
                 <div className="flex justify-between items-center text-[11px]">
-                  <span className="text-slate-400 font-sans">Admin Authentication:</span>
-                  <span className="font-mono text-amber-400 font-semibold text-[10px]">SALT Bcrypt + JWT (8h expires)</span>
+                  <span className="text-slate-400 font-sans">Type:</span>
+                  <span className="font-mono text-amber-400 font-semibold text-[10px]">Easy to Understand Real-Time FAQ UX</span>
                 </div>
               </div>
             </div>
@@ -280,10 +215,10 @@ export default function App() {
             <div className="space-y-1 text-center md:text-left">
               <div className="flex items-center gap-2 justify-center md:justify-start">
                 <span className="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></span>
-                <span className="text-xs font-bold text-slate-200 tracking-wider font-display">GUARDIAN COGNITIVE SUITE</span>
+                <span className="text-xs font-bold text-slate-200 tracking-wider font-display">CLARA COGNITIVE SOLVER</span>
               </div>
               <p className="text-[11px] text-slate-400 max-w-sm">
-                Running in isolated staging containers with automatic database replication, NLP validation suites, and HSTS filters.
+                A simple, beautiful assistant designed to easily solve platform questions dynamically.
               </p>
             </div>
 
@@ -306,11 +241,11 @@ export default function App() {
           </div>
 
           <div className="mt-8 border-t border-slate-850 pt-4 flex flex-col md:flex-row justify-between items-center gap-4 text-[10px] font-mono text-slate-500">
-            <span>© 2026 Admin Dashboard Portal • Security Sandbox v1.2.0</span>
+            <span>© 2026 Clara FAQ Assistant Suite</span>
             <div className="flex items-center gap-3 font-mono">
               <span>HSTS Protected</span>
               <span>•</span>
-              <span>CORS Policy Ingress: OK</span>
+              <span>Secure Ingress: OK</span>
             </div>
           </div>
 

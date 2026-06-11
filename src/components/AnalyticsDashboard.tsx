@@ -3,31 +3,20 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import { Database, HelpCircle, CheckCircle, AlertTriangle, RefreshCw, Layers } from 'lucide-react';
 import { AnalyticsStats } from '../types';
 
-interface AnalyticsDashboardProps {
-  authToken: string | null;
-}
+interface AnalyticsDashboardProps {}
 
 const COLORS = ['#6366f1', '#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6'];
 
-export default function AnalyticsDashboard({ authToken }: AnalyticsDashboardProps) {
+export default function AnalyticsDashboard({}: AnalyticsDashboardProps) {
   const [data, setData] = useState<AnalyticsStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAnalytics = async () => {
-    if (!authToken) {
-      setError("Administrative authorization required. Please log in first.");
-      setLoading(false);
-      return;
-    }
     setError(null);
     setLoading(true);
     try {
-      const res = await fetch('/api/analytics', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
+      const res = await fetch('/api/analytics');
       if (!res.ok) {
         throw new Error('Could not pull latest metrics from the server.');
       }
@@ -42,19 +31,7 @@ export default function AnalyticsDashboard({ authToken }: AnalyticsDashboardProp
 
   useEffect(() => {
     fetchAnalytics();
-  }, [authToken]);
-
-  if (!authToken) {
-    return (
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center shadow-lg">
-        <Layers className="w-12 h-12 text-slate-600 mx-auto mb-4 animate-pulse" />
-        <h3 className="text-lg font-semibold text-slate-200 mb-2 font-display">Secured Analytics Workspace</h3>
-        <p className="text-sm text-slate-400 max-w-md mx-auto">
-          Statistical query audits and natural learning engine logs contain private user interaction metadata. Please log in using the Admin tab password credentials to unlock authorization.
-        </p>
-      </div>
-    );
-  }
+  }, []);
 
   if (loading) {
     return (

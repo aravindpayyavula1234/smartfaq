@@ -299,24 +299,59 @@ export class NLPEngine {
 
       const response = await this.ai.models.generateContent({
         model: 'gemini-3.5-flash',
-        contents: `You are an FAQ AI chatbot helper. The user asked an out-of-scope question or one that didn't perfectly match our existing database.
+        contents: `You are Clara, a friendly, warm, empathetic, and highly personal support specialist companion. Respond warmly, using personal pronouns and natural conversational flow, like a real, supportive person typing on the other end.
 
-Here are the closely related FAQs for context to guide your response styling and knowledge boundary:
+Here are the closely related FAQs for context to guide your response styling and knowledge boundaries:
 ${contextText}
 
 Question asked by user:
 "${query}"
 
 Instructions:
-1. Try to answer the user's question politely and intelligently, based on the context of our platform FAQs when possible.
-2. If the user's question is completely unrelated to our platform, helpfully answer it but remind them that for specific operational concerns, they can reach customer support at support@example.com.
-3. Be concise (under 3 sentences). Keep a friendly, professional tone. Avoid HTML tags, output clean text or basic markdown.`,
+1. Answer the user's question with deep empathy, clarity, and a warm conversational personality, like a real person sitting on the other end who values their query.
+2. If the user's question is completely unrelated to our platform, helpfully answer it but warmly remind them that for specific operational concerns, they can reach customer support at support@example.com.
+3. Be concise (under 3 sentences). Accentuate natural human phrasing. Avoid HTML tags, output clean text or basic markdown. Do not include system prefix headers.`,
       });
 
       return response.text || "Sorry, I couldn't find a suitable answer. Please contact support.";
     } catch (err) {
       console.error('Fallback AI generation errored', err);
       return "Sorry, I couldn't find a suitable answer. Please contact support.";
+    }
+  }
+
+  // --- PREMIUM AI DEEP RESOLUTION SOLVER ---
+  public async generateAIDeepSolve(query: string, faqContexts: FAQ[]): Promise<string> {
+    if (!this.isGeminiEnabled || !this.ai) {
+      return "Hello! I would love to perform a deep step-by-step resolution of your question, but Clara's Real-time Solver is currently running in local-only mode. Could you please configure `GEMINI_API_KEY`?";
+    }
+
+    try {
+      const contextText = faqContexts
+        .map(f => `Category: ${f.category}\nQ: ${f.question}\nA: ${f.answer}`)
+        .join('\n\n');
+
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-3.5-flash',
+        contents: `You are Clara, a friendly, detail-oriented, and highly empathetic expert solver. The user has specifically requested a **Deep Solve Step-by-Step Resolution** for their query.
+
+If relevant, use these platform FAQs for backend technical context:
+${contextText}
+
+Query to solve:
+"${query}"
+
+Instructions:
+1. Break down the user's request step-by-step. Provide a highly actionable, structured, and helpful solution.
+2. Use clear subheadings, list highlights (using markdown bullets or numbers).
+3. Be warm, supportive, and natural, maintaining your identity as "Clara".
+4. Keep the output neat and concise (under 6 bullet points or sentences). Avoid HTML tags.`,
+      });
+
+      return response.text || "I apologize, I wasn't able to compile a complete deep resolution. Could you try rephrasing your question?";
+    } catch (err) {
+      console.error('Deep Solve AI generation error:', err);
+      return "I apologize, I ran into an issue while solving your question in real-time. Please contact our support desk!";
     }
   }
 }

@@ -19,6 +19,7 @@ export interface ChatMessage {
   timestamp: string;
   suggestions?: string[];
   isAudio?: boolean;
+  isDeepSolve?: boolean;
 }
 
 export interface UserQueryLog {

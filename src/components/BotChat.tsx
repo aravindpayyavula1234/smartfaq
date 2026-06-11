@@ -6,7 +6,7 @@ export default function BotChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome',
-      text: "Hello! I'm your Security-first Intelligent FAQ assistant. Ask me anything about accounts, billing, security, or platform integrations!",
+      text: "Hi there! I'm Clara, your warm support specialist companion. 😊 I'm here to help navigate administrative guidelines, billing details, or platform security in real-time. What can I answer for you today?",
       sender: 'bot',
       timestamp: new Date().toISOString()
     }
@@ -18,6 +18,7 @@ export default function BotChat() {
   const [isListening, setIsListening] = useState(false);
   const [recognition, setRecognition] = useState<any>(null);
   const [recentQueries, setRecentQueries] = useState<string[]>([]);
+  const [deepSolveMode, setDeepSolveMode] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -162,7 +163,7 @@ export default function BotChat() {
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: query })
+        body: JSON.stringify({ message: query, deepSolve: deepSolveMode })
       });
 
       if (!response.ok) {
@@ -172,18 +173,47 @@ export default function BotChat() {
 
       const scoreResult = await response.json();
       
-      const botMessage: ChatMessage = {
-        id: `m_${Date.now()}_b`,
-        text: scoreResult.answer,
+      // Real-time word-by-word conversational stream
+      const botMessageId = `m_${Date.now()}_b`;
+      const finalAnswer = scoreResult.answer;
+      
+      const botPlaceholder: ChatMessage = {
+        id: botMessageId,
+        text: '',
         sender: 'bot',
         confidence: scoreResult.confidence,
         matchedFAQId: scoreResult.matchedFAQId,
         isFallback: scoreResult.isFallback,
+        isDeepSolve: deepSolveMode,
         timestamp: new Date().toISOString()
       };
 
-      setMessages(prev => [...prev, botMessage]);
-      speakText(scoreResult.answer);
+      setMessages(prev => [...prev, botPlaceholder]);
+      setIsTyping(false); // Stop typing visual once word-stream starts
+
+      const words = finalAnswer.split(' ');
+      let wordIndex = 0;
+      let currentText = '';
+
+      const interval = setInterval(() => {
+        if (wordIndex < words.length) {
+          currentText += (wordIndex === 0 ? '' : ' ') + words[wordIndex];
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === botMessageId ? { ...msg, text: currentText } : msg
+            )
+          );
+          wordIndex++;
+        } else {
+          clearInterval(interval);
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === botMessageId ? { ...msg, text: finalAnswer } : msg
+            )
+          );
+          speakText(finalAnswer);
+        }
+      }, 35); // Fast, lively conversational response stream at ~35ms per word
 
     } catch (err: any) {
       const systemErrorMessage: ChatMessage = {
@@ -224,7 +254,7 @@ export default function BotChat() {
     setMessages([
       {
         id: 'welcome',
-        text: "Chat transcript cleared. Let's start fresh! Go ahead and ask an FAQ question.",
+        text: "Hi! Clara here. Chat log cleared! Let's start a fresh, warm conversation. What would you like to ask?",
         sender: 'bot',
         timestamp: new Date().toISOString()
       }
@@ -303,15 +333,15 @@ export default function BotChat() {
         <div id="chat_header" className="flex justify-between items-center px-6 py-4 bg-slate-950 border-b border-slate-800">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="w-10 h-10 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold">
-                AI
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-rose-500 via-indigo-500 to-indigo-650 flex items-center justify-center text-white font-semibold shadow-md border border-indigo-400/20">
+                CL
               </div>
-              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-950"></span>
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-400 rounded-full border-2 border-slate-950"></span>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-100 font-display">FAQ Virtual Assistant</h3>
-              <span className="text-xs text-slate-400 flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-indigo-400" /> NLP Semantic Engine
+              <h3 className="text-sm font-semibold text-slate-100 font-display">Clara • Support Specialist</h3>
+              <span className="text-[11px] text-emerald-400 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse inline-block"></span> Warm Companion Online
               </span>
             </div>
           </div>
@@ -355,6 +385,7 @@ export default function BotChat() {
           {messages.map(msg => {
             const isUser = msg.sender === 'user';
             const isSystem = msg.sender === 'system';
+            const isDeep = msg.isDeepSolve === true;
 
             if (isSystem) {
               return (
@@ -374,8 +405,16 @@ export default function BotChat() {
                   <div className={`px-4 py-3 rounded-2xl relative ${
                     isUser 
                       ? 'bg-gradient-to-tr from-indigo-700 to-indigo-600 text-slate-50 rounded-br-none shadow-md' 
-                      : 'bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700/60'
+                      : isDeep
+                        ? 'bg-gradient-to-tr from-slate-900 via-indigo-950/20 to-slate-900 text-indigo-100 rounded-bl-none border-2 border-indigo-500/35 shadow-indigo-950/40 shadow-lg'
+                        : 'bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700/60'
                   }`}>
+                    {isDeep && (
+                      <div className="flex items-center gap-1.5 text-[9.5px] font-extrabold tracking-wider text-indigo-400 font-mono mb-2 uppercase select-none">
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-400 animate-pulse shrink-0" /> 
+                        ⚡ CLARA DEEP-SOLVER ACTIVE
+                      </div>
+                    )}
                     <p className="text-sm leading-relaxed whitespace-pre-wrap selection:bg-indigo-300 selection:text-slate-900">
                       {msg.text}
                     </p>
@@ -386,19 +425,21 @@ export default function BotChat() {
                         <span className="flex items-center gap-1">
                           Match Confidence:{' '}
                           <span className={`font-semibold ${
-                            msg.isFallback 
-                              ? 'text-amber-400' 
-                              : msg.confidence >= 0.85 
-                                ? 'text-emerald-400' 
-                                : 'text-sky-400'
+                            isDeep
+                              ? 'text-indigo-405 text-indigo-400'
+                              : msg.isFallback 
+                                ? 'text-amber-400' 
+                                : msg.confidence >= 0.85 
+                                  ? 'text-emerald-400' 
+                                  : 'text-sky-400'
                           }`}>
-                            {msg.isFallback ? 'AI Assist' : `${Math.round(msg.confidence * 100)}%`}
+                            {isDeep ? 'Live Resolve' : msg.isFallback ? 'AI Assist' : `${Math.round(msg.confidence * 100)}%`}
                           </span>
                         </span>
 
                         {/* Matching Method Indicator */}
                         <span className="text-[9px] bg-slate-900/60 border border-slate-700/80 px-1.5 rounded text-indigo-400 font-sans">
-                          {msg.isFallback ? 'llm hybrid fallback' : msg.confidence > 0.80 ? 'semantic matching' : 'tf-idf alignment'}
+                          {isDeep ? 'gemini live solver' : msg.isFallback ? 'llm hybrid fallback' : msg.confidence > 0.80 ? 'semantic matching' : 'tf-idf alignment'}
                         </span>
                       </div>
                     )}
@@ -451,7 +492,7 @@ export default function BotChat() {
 
         {/* Suggester Autocomplete Overlay */}
         {suggestions.length > 0 && (
-          <div id="suggestion_bar" className="absolute bottom-[72px] left-0 right-0 px-6 py-2 bg-slate-950/95 backdrop-blur-sm border-t border-slate-800 flex flex-wrap gap-2 z-10 animate-fade-in">
+          <div id="suggestion_bar" className="absolute bottom-[104px] left-0 right-0 px-6 py-2 bg-slate-950/95 backdrop-blur-sm border-t border-slate-800 flex flex-wrap gap-2 z-10 animate-fade-in">
             <span className="text-[10px] text-indigo-400 font-mono flex items-center mr-1">Dynamic Topics:</span>
             {suggestions.map((suggestion, index) => (
               <button
@@ -464,6 +505,26 @@ export default function BotChat() {
             ))}
           </div>
         )}
+
+        {/* Status Tray and Deepsolve Toggle switch */}
+        <div className="px-6 py-2.5 bg-slate-950 border-t border-slate-850/80 flex items-center justify-between text-[11px] font-mono">
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                id="deep_solver_switch"
+                type="checkbox"
+                checked={deepSolveMode}
+                onChange={(e) => setDeepSolveMode(e.target.checked)}
+                className="w-3.5 h-3.5 rounded border-slate-800/80 bg-slate-900 checked:bg-indigo-600 checked:border-indigo-500 text-indigo-600 focus:ring-0 cursor-pointer"
+              />
+              <span className={`text-[10.5px] font-extrabold tracking-wider flex items-center gap-1.5 ${deepSolveMode ? 'text-indigo-400' : 'text-slate-400'}`}>
+                <Sparkles className={`w-3.5 h-3.5 ${deepSolveMode ? 'animate-bounce text-indigo-400' : 'text-slate-500'}`} />
+                ⚡ CLARA DEEP-SOLVER ACTIVE
+              </span>
+            </label>
+          </div>
+          <span className="text-[9.5px] text-slate-500 hidden md:inline">Runs step-by-step resolution mapping on Gemini 1.5</span>
+        </div>
 
         {/* Input Form dock */}
         <form
